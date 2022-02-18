@@ -2,35 +2,35 @@ package com.example.demo;
 
 import com.example.demo.dao.StudentDao;
 import com.example.demo.model.Student;
+import com.example.demo.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/hello")
 public class HelloController {
 
     @Autowired
-    StudentDao dao;
+    StudentService studentService;
 
     @GetMapping("/greet")
     public String index() {
         return "Greetings from Spring Boot!";
     }
 
-    @GetMapping("/getAll")
+    @GetMapping("/student")
     @ResponseBody
-    public List<Student> getAllStudents() {
-        return dao.loadAll();
+    public List<Student> getStudent(@RequestParam Optional<Integer> id) {
+        return studentService.getStudent(id);
     }
 
-    @GetMapping(value = "/addStudent")
-    public String saveData(@RequestParam String name,@RequestParam String grade){
-        Student s = new Student(name,grade);
-        s.setId(1L);
-        long response = dao.save(s);
-        return "Done";
+    @PostMapping(value = "/addStudent")
+    public String saveData(@RequestParam String name,@RequestParam String grade, @RequestParam(required = false) Long id){
+        Student s = new Student(name,grade,id);
+        return studentService.addOrUpdateStudent(s);
     }
 
 }

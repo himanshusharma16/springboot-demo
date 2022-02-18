@@ -1,0 +1,1 @@
+INSERT into STUDENT values (0,'Dummy','Dummy');

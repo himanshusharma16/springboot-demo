@@ -14,9 +14,10 @@ public class Student {
 
     public Student(){}
 
-    public Student(String name, String grade){
+    public Student(String name, String grade, Long id){
         this.name = name;
         this.grade = grade;
+        this.id = id;
     }
     public Long getId() {
         return id;

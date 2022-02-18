@@ -2,6 +2,7 @@ package com.example.demo.dao;
 
 import com.example.demo.execption.StudentGenerateException;
 import com.example.demo.execption.StudentLostException;
+import com.example.demo.execption.StudentRuntimeException;
 import com.example.demo.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -26,7 +28,7 @@ public class StudentDao {
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    public long save(Student student) {
+    public long save(Student student) throws StudentRuntimeException {
         String sql = "insert into STUDENT (ID, NAME, GRADE) values (?, ?, ?)";
         KeyHolder holder = new GeneratedKeyHolder();
         jdbcTemplate.update(new PreparedStatementCreator() {
@@ -35,7 +37,7 @@ public class StudentDao {
                     throws SQLException {
                 PreparedStatement ps = connection.prepareStatement(sql.toString(),
                         Statement.RETURN_GENERATED_KEYS);
-                ps.setLong(1, student.getId() != 0 ? student.getId() : getNewId());
+                ps.setLong(1, student.getId() != null ? student.getId() : getNewId());
                 ps.setString(2, student.getName());
                 ps.setString(3, student.getGrade());
                 return ps;
@@ -48,13 +50,20 @@ public class StudentDao {
         throw new StudentGenerateException("No generated primary key returned.");
     }
 
-    private long getNewId() {
-        return jdbcTemplate.query("select max(ID) from STUDENT", (resultSet, i) -> {
-            return resultSet.getLong("ID");
-        }).get(0);
+    /*Returns the number of rows updated*/
+    public int updateStudent(Student s){
+        int rows = jdbcTemplate.update("update Student set name = ? , grade = ? where id = ?",s.getName(),s.getGrade(),s.getId());
+        return rows;
     }
 
-    public Student load(long id) {
+    private long getNewId() {
+        long maxID =  jdbcTemplate.query("select max(ID) as ID from STUDENT", (resultSet, i) -> {
+            return resultSet.getLong("ID");
+        }).get(0);
+        return ++maxID;
+    }
+
+    public Student load(long id) throws StudentRuntimeException{
         List<Student> persons = jdbcTemplate.query("select * from STUDENT where id =?",
                 new Object[]{id}, (resultSet, i) -> {
                     return toReport(resultSet);
@@ -74,8 +83,8 @@ public class StudentDao {
     }
 
     public List<Student> loadAll() {
-        return jdbcTemplate.query("select * from STUDENT", (resultSet, i) -> {
-            return toReport(resultSet);
+        return jdbcTemplate.query("select * from STUDENT where ID > 0", (resultSet, i) -> {
+                return toReport(resultSet);
         });
     }
 }
