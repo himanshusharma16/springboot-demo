@@ -1,10 +1,13 @@
 package com.example.demo.model;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 @Entity
+@Document("student")
 public class Student {
     @Id
     @GeneratedValue

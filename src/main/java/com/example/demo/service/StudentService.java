@@ -1,27 +1,41 @@
 package com.example.demo.service;
 
 import com.example.demo.dao.StudentDao;
+import com.example.demo.dao.StudentRepository;
 import com.example.demo.execption.StudentRuntimeException;
 import com.example.demo.model.Student;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-@Component
+@Service
 public class StudentService {
+
+    Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     StudentDao dao;
+
+    @Autowired
+    StudentRepository studentRepository;
+
+    @Autowired
+    public StudentService(StudentDao dao){
+        this.dao = dao;
+    }
 
     public List<Student> getStudent(Optional<Integer> id){
         if(id.isPresent())
             return getSpecificStudent(id.get());
         else
-            return dao.loadAll();
+            return studentRepository.findAll().stream().filter(i->i.getId()>0).collect(Collectors.toList());
     }
 
     private List<Student> getSpecificStudent(Integer id) {
